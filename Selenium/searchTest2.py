@@ -5,11 +5,12 @@ from selenium import webdriver
 class SearchTest(unittest.TestCase):
     
     def setUp(self):
-        self.driver = webdriver.Chrome(executable_path=r"D:/Software development/Backend-python/Selenium/chromedriver.exe")
+        #self.driver = webdriver.Chrome(executable_path=r"D:/Software development/Backend-python/Selenium/chromedriver.exe")
+        self.driver = webdriver.Chrome(executable_path=r"./chromedriver.exe")
         driver = self.driver
-        driver.get("http://demo-store.seleniumacademy.com/")
+        driver.implicitly_wait(30)
         driver.maximize_window()
-        driver.implicitly_wait(15)
+        driver.get("http://demo-store.seleniumacademy.com/")
         
     def test_search_tee(self):
         driver  = self.driver
@@ -33,5 +34,5 @@ class SearchTest(unittest.TestCase):
     
     
 if __name__ == "__main__":
-    unittest.main(verbosity=2,testRunner=HTMLTestRunner(output="reportes",report_name="search2_test_report"))
+    unittest.main(verbosity=2)
     

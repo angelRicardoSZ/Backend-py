@@ -1,5 +1,4 @@
 import unittest
-from pyunitreport import HTMLTestRunner
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
@@ -7,11 +6,12 @@ from selenium.webdriver.common.by import By
 class AssertionsTest(unittest.TestCase):
     
     def setUp(self):
-        self.driver = webdriver.Chrome(executable_path=r"D:/Software development/Backend-python/Selenium/chromedriver.exe")
+        #self.driver = webdriver.Chrome(executable_path=r"D:/Software development/Backend-python/Selenium/chromedriver.exe")
+        self.driver = webdriver.Chrome(executable_path=r"./chromedriver.exe")
         driver = self.driver
-        driver.get("http://demo-store.seleniumacademy.com/")
         driver.maximize_window()
-        driver.implicitly_wait(15)
+        driver.implicitly_wait(30)
+        driver.get("http://demo-store.seleniumacademy.com/")
         
     def test_search_field(self):
         self.assertTrue(self.is_element_present(By.NAME,'q'))
@@ -33,5 +33,5 @@ class AssertionsTest(unittest.TestCase):
 
     
 if __name__ == "__main__":
-    unittest.main(verbosity=2,testRunner=HTMLTestRunner(output="reportes",report_name="ASSERTION_test_report"))
+    unittest.main(verbosity=2)
     
