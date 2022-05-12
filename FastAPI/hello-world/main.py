@@ -1,3 +1,4 @@
+from doctest import Example
 from email.policy import default
 from typing import Optional
 from enum import Enum
@@ -20,29 +21,58 @@ class HairColor(Enum):
 
 
 class Location(BaseModel):
-    city: str
-    state: str
-    country: str
+    city: str = Field(
+        ...,
+        min_length=1,
+        max_length=50,
+        example="Puebla"
+        )
+    state: str = Field(
+        ...,
+        min_length=1,
+        max_length=50,
+        example="Puebla"
+        )
+    country: str = Field(
+        ...,
+        min_length=1,
+        max_length=50,
+        example="México"
+        )
 
 
 class Person(BaseModel):
     first_name: str = Field(
         ...,
         min_length=1,
-        max_length=50,
+        max_length=50, 
+        example= "Ricardo"
         )
     last_name: str =  Field(
         ...,
         min_length=1,
         max_length=50,
+        example="Zefe"
         )
     age: int = Field(
         ...,
         gt=0,
         le=115,
+        example=25
     )
-    hair_color: Optional[HairColor] = Field(default=None)
-    is_married: Optional[bool] = Field(default = None)
+    hair_color: Optional[HairColor] = Field(default=None,example="black")
+    is_married: Optional[bool] = Field(default = None,example=False)
+    
+    # class Config:
+    #     schema_extra = {
+    #         "Facundo": {
+    #             "First_name": "Angel",
+    #             "last_name":"Sanchez",
+    #             "age":21,
+    #             "hair_color": "blonde",
+    #             "Is married": False
+    #         }
+    #     }
     
 @app.get("/")
 def home():
@@ -62,12 +92,14 @@ def show_person(
         min_length=1, 
         max_length=50,
         title="Person Name",
-        description="This is the person name. It's between 1 and 50 characters"
+        description="This is the person name. It's between 1 and 50 characters",
+        example="Pedro"
         ),
     age: str = Query(
         ...,
         title="Person Age",
-        description="This is the person age. It's required"
+        description="This is the person age. It's required",
+        example=20
         )
 ): 
     return {name: age}
@@ -79,7 +111,8 @@ def show_person(
         ...,
         gt=0,
         title="Person ID",
-        description="This is the person ID. It's reqiuired and it's more than 0."
+        description="This is the person ID. It's reqiuired and it's more than 0.",
+        example=123
         )
 ): 
     return {person_id: "It exists!"}
@@ -92,7 +125,8 @@ def update_person(
         ...,
         title="PERSON_ID",
         desciption="This is the person ID",
-        gt=0        
+        gt=0,
+        example=40        
     ),
     person: Person = Body(...),
     location: Location = Body(...)
