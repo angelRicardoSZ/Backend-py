@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from pydantic import Field
 
 from fastapi import FastAPI
+from fastapi import status
 from fastapi import Body, Query, Path
 app = FastAPI()
 
@@ -40,8 +41,7 @@ class Location(BaseModel):
         example="México"
         )
 
-
-class Person(BaseModel):
+class PersonBase(BaseModel):
     first_name: str = Field(
         ...,
         min_length=1,
@@ -62,7 +62,8 @@ class Person(BaseModel):
     )
     hair_color: Optional[HairColor] = Field(default=None,example="black")
     is_married: Optional[bool] = Field(default = None,example=False)
-    
+class Person(PersonBase):
+    passwrod: str = Field(...,min_length=8)
     # class Config:
     #     schema_extra = {
     #         "Facundo": {
@@ -73,19 +74,32 @@ class Person(BaseModel):
     #             "Is married": False
     #         }
     #     }
+class PersonOut(PersonBase):
+    pass
     
-@app.get("/")
+    
+@app.get(
+    path="/",
+    status_code=status.HTTP_200_OK
+    )
 def home():
     return {"Hello":"World"}
 
 # Request and response body
-@app.post("/person/new")
+@app.post(
+    path="/person/new",
+    response_model=PersonOut,
+    status_code=status.HTTP_201_CREATED    
+    )
 def create_person(person: Person = Body(...)):
     return person
     
     
 # Validaciones: Query Parameters
-@app.get("/person/detail")
+@app.get(
+    path="/person/detail",
+    status_code=status.HTTP_200_OK
+    )
 def show_person(
     name: Optional[str] = Query(
         None,
@@ -105,7 +119,10 @@ def show_person(
     return {name: age}
 
 # Validaciones: Path Parameters
-@app.get("/person/detail/{person_id}")
+@app.get(
+    path="/person/detail/{person_id}",
+    status_code=status.HTTP_200_OK
+    )
 def show_person(
     person_id: int = Path(
         ...,
@@ -119,7 +136,10 @@ def show_person(
 
 # Validaciones: Request Body
 
-@app.put("/person/{person_id}")
+@app.put(
+    path="/person/{person_id}",
+    status_code=status.HTTP_201_CREATED
+    )
 def update_person(
     person_id: int = Path(
         ...,
