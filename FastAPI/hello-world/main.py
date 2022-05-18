@@ -1,14 +1,20 @@
+from distutils.command.upload import upload
 from doctest import Example
+from email import message
+from email.header import Header
 from email.policy import default
+from optparse import Option
 from typing import Optional
 from enum import Enum
+from urllib import response
 
 from pydantic import BaseModel
 from pydantic import Field
+from pydantic import EmailStr
 
 from fastapi import FastAPI
 from fastapi import status
-from fastapi import Body, Query, Path
+from fastapi import Body, Query, Path, Form, Header, Cookie, UploadFile, File
 app = FastAPI()
 
 # Models
@@ -77,6 +83,16 @@ class Person(PersonBase):
 class PersonOut(PersonBase):
     pass
     
+class LoginOut(BaseModel):
+    username: str = Field(
+        ...,
+        max_Length=20,
+        example="miguel2022",
+        )
+    message: str = Field(
+        default="Login Succesfully!"
+    )
+
     
 @app.get(
     path="/",
@@ -154,3 +170,58 @@ def update_person(
     results = person.dict()
     results.update(location.dict())
     return results
+
+# Forms
+@app.post(
+    path="/login",
+    response_model=LoginOut,
+    status_code=status.HTTP_200_OK
+)
+def login(
+    username: str = Form(...),
+    password: str=Form(...)
+    ):
+    return LoginOut(username=username)
+
+
+# Cookies and headers parameters
+@app.post(
+    path="/contact",
+    status_code=status.HTTP_200_OK
+)
+def contact(
+    first_name: str=Form(
+        ...,
+        max_length=20,
+        min_length=1
+    ),
+    last_name: str=Form(
+        ...,
+        max_length=20,
+        min_length=1
+    ),
+    email: EmailStr = Form(
+        ...
+    ),
+    message: str=Form(
+        ...,
+        min_length=20
+    ),
+    user_agent: Optional[str] = Header(default=None),
+    ads:Optional[str]=Cookie(default=None)
+    
+):
+    return user_agent
+
+# Files
+@app.post(
+    path="/post-image"
+)
+def post_image(
+    image: UploadFile = File(...)
+):
+    return {
+        "Filename": image.filename,
+        "Format": image.content_type,
+        "Size(kb)": round(len(image.file.read())/1024, ndigits=2)
+    }
