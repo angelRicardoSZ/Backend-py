@@ -1,8 +1,9 @@
 # Python
-from uuid import UUID
+from uuid import UUID,uuid4 
 from datetime import date
 from datetime import datetime
 from typing import Optional, List
+import json
 
 # Pydantic
 from pydantic import BaseModel
@@ -13,6 +14,8 @@ from pydantic import Field
 #fastapi
 from fastapi import FastAPI
 from fastapi import status
+from fastapi import Body
+from fastapi import HTTPException
 
 app = FastAPI()
 
@@ -44,6 +47,13 @@ class User(UserBase):
     )
     birth_date: Optional[date] = Field(default=None)
 
+
+class UserRegister(User):
+    password: str = Field(
+        ...,
+        min_length=8,
+        max_length=64
+    )
 class Tweet(BaseModel):
     tweet_id: UUID =Field(...)
     content: str = Field(
@@ -58,12 +68,12 @@ class Tweet(BaseModel):
 
 # Path operations
 
-@app.get(path="/")
-def home():
-    return {"Twitter API":"working"}
+#@app.get(path="/")
+#def home():
+    #return {"Twitter API":"working"}
 
 
-## Users
+## Users ### Register a user
 @app.post(
     path="/signup",
     response_model=User,
@@ -71,11 +81,38 @@ def home():
     summary="Register User",
     tags= ["Users"]
 )
-def signup():
-    pass 
+def signup(user: UserRegister = Body(...)):
+    """
+    Signup
+    
+    This path operation register a user in the app
+    
+    Parameters: 
+        - Request body parameter
+            - user: UserRegister
+    Returns a json with the basic user information:
+        - user_id: UUID
+        - email: EmailStr
+        - first_name: str
+        - last_name:str
+        - birth_date: date
+    """ 
+    with open("users.json","r+",encoding="utf-8") as f:
+        results = json.loads(f.read())
+        if any(users['email'] == user.email for users in results):
+            raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="This email already exist!"
+            )
+        user_dict = user.dict()
+        user_dict["user_id"] = str(user_dict["user_id"])
+        user_dict["birth_date"] = str(user_dict["birth_date"])
+        results.append(user_dict)
+        f.seek(0)        
+        f.write(json.dumps(results))
+        return user
 
-
-
+### login a user
 @app.post(
     path="/login",
     response_model=User,
@@ -86,7 +123,7 @@ def signup():
 def login():
     pass 
 
-
+### Show all users
 @app.get(
     path="/users",
     response_model=List[User],
@@ -95,9 +132,11 @@ def login():
     tags= ["Users"]
 )
 def show_all_users():
-    pass 
+        with open("users.json", "r", encoding="utf-8") as f: 
+            results = json.loads(f.read())
+            return results
 
-
+### Show a user
 @app.get(
     path="/users/{user_id}",
     response_model=User,
@@ -107,7 +146,7 @@ def show_all_users():
 )
 def show_a_user():
     pass 
-
+### Delete a user
 @app.delete(
     path="/users/{user_id}/delete",
     response_model=User,
@@ -118,7 +157,7 @@ def show_a_user():
 def delete_a_user():
     pass 
 
-
+### Update a user
 @app.put(
     path="/users/{user_id}/update",
     response_model=User,
@@ -130,3 +169,72 @@ def update_a_user():
     pass 
 
 ## Tweets
+### Show all tweets
+@app.get(
+    path="/",
+    response_model=List[Tweet],
+    status_code=status.HTTP_200_OK,
+    summary="Show all tweets",
+    tags= ["Tweets"]
+    )
+def home():
+    with open("tweets.json","r",encoding="utf-8") as f:
+        results = json.loads(f.read())
+        return results
+### Post a tweet
+@app.post(
+    path="/post",
+    response_model=Tweet,
+    status_code=status.HTTP_201_CREATED,
+    summary="Post a tweet",
+    tags= ["Tweets"]
+)
+def post(tweet: Tweet = Body(...)):
+    with open("tweets.json","r+",encoding="utf-8") as f:
+        results = json.loads(f.read())
+        tweet_dict = tweet.dict()
+        tweet_dict["tweet_id"] = str(tweet_dict["tweet_id"])
+        tweet_dict["created_at"] = str(tweet_dict["created_at"])
+        tweet_dict["updated_at"] = str(tweet_dict["updated_at"])
+        tweet_dict["by"]["user_id"] = str(tweet_dict["by"]["user_id"])
+        tweet_dict["by"]["birth_date"] = str(tweet_dict["by"]["birth_date"])
+        results.append(tweet_dict)
+        f.seek(0)        
+        f.write(json.dumps(results))
+        return tweet
+
+### Show a tweet
+@app.get(
+    path="/tweets/{tweet_id}",
+    response_model=Tweet,
+    status_code=status.HTTP_200_OK,
+    summary="Show a tweet",
+    tags= ["Tweets"]
+)
+def show_a_tweet():
+    pass 
+
+
+### Delete a tweet
+@app.delete(
+    path="/tweets/{tweet_id}/delete",
+    response_model=Tweet,
+    status_code=status.HTTP_200_OK,
+    summary="Delete a tweet",
+    tags= ["Tweets"]
+)
+def delete_a_tweet():
+    pass 
+
+
+
+### Update a tweet
+@app.put(
+    path="/tweets/{tweet_id}/update",
+    response_model=Tweet,
+    status_code=status.HTTP_200_OK,
+    summary="Update a tweet",
+    tags= ["Tweets"]
+)
+def update_a_tweet():
+    pass 
