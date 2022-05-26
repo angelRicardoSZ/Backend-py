@@ -4,7 +4,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from .models import Choice, Question
 from django.urls import reverse
 from django.views import generic
-
+from django.utils import timezone
 from django.utils import timezone
 # Create your views here.
 # def index(request):

@@ -8,8 +8,15 @@ class Question(models.Model):
     def __str__(self):
         return self.question_text
     
+    #def save(self, *args, **kwargs):
+    #    super().save(*args, **kwargs)
+
+        #if self.choice_set.all().count() == 0:
+        #    super().delete()
+        #    raise Exception("Question must have at least one choice")
+    
     def was_published_recently(self):
-        return self.pub_date > timezone.now() - datetime.timedelta(days=1)
+        return timezone.now() >= self.pub_date >= (timezone.now() - datetime.timedelta(days=1))
         
 class Choice(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
