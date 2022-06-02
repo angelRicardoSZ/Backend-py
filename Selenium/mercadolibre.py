@@ -3,6 +3,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 from time import sleep
+from pyunitreport import HTMLTestRunner
 
 class NavigationTest(unittest.TestCase):
     def setUp(self):
@@ -66,4 +67,5 @@ class NavigationTest(unittest.TestCase):
         self.driver.close()
         
 if __name__ == "__main__":
-	unittest.main(verbosity = 2)  
+	#unittest.main(verbosity = 2)  
+    unittest.main(verbosity = 2, testRunner = HTMLTestRunner(output = 'reportes', report_name = 'mercado libre'))
