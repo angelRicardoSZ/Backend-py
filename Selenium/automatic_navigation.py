@@ -7,7 +7,7 @@ from time import sleep
 class NavigationTest(unittest.TestCase):
     def setUp(self):
         #self.driver = webdriver.Chrome(executable_path=r"D:/Software development/Backend-python/Selenium/chromedriver.exe")
-        self.driver = webdriver.Chrome(executable_path=r"./chromedriver.exe")
+        self.driver = webdriver.Chrome(executable_path=r"./chromedriver3.exe")
         driver = self.driver
         driver.maximize_window()
         driver.implicitly_wait(30)
