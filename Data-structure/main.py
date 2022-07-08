@@ -1,19 +1,12 @@
-from my_array import Array
+from grid import Grid
 
 def run():
-    menu = Array(5) 
-    for i in range(len(menu)):
-        menu[i] = i+1
-    print(menu.__len__())
-    print(menu.__str__())
-    print(menu.__iter__())
-    print(menu.__getitem__(2))
-    # menu.__setitem__(2,100)
-    
-    menu.__addRandomItems__()
-    print(menu)
-    print(menu.__addAll__())
-    
+    matrix = Grid(3,3)
+    print(matrix)
+    for row in range(matrix.get_height()):
+        for col in range(matrix.get_height()):
+            matrix[row][col] = row * col
+    print(matrix)
     
 if __name__=="__main__":
     run()
