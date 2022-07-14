@@ -1,5 +1,22 @@
 from my_array import Array
 
+"""
+Two dimensional array type class
+
+Methods:
+    1. height
+    2. Weight
+    3. Get item
+    4. String representation
+    5. Add random items
+
+    
+Args:
+    height (int): height of the array.
+    width (int): width of the array.
+    fill_value (any, optional): value at each position. Defaults to None
+"""
+
 class Grid():
     def __init__(self, rows, columns, fill_value=None) -> None:
         self.data = Array(rows)
@@ -24,3 +41,6 @@ class Grid():
             result += "\n"
         
         return str(result)
+    
+    def __addRandomItems__(self, lower=0, upper=10):
+        pass
