@@ -89,5 +89,71 @@ All attributes should be considered read-only, unless stated otherwise.
 
   A dictionary-like object containing all given HTTP POST parameters, providing that the request contains form data. See the [`QueryDict`](https://docs.djangoproject.com/en/2.0/ref/request-response/#django.http.QueryDict) documentation below. If you need to access raw or non-form data posted in the request, access this through the [`HttpRequest.body`](https://docs.djangoproject.com/en/2.0/ref/request-response/#django.http.HttpRequest.body) attribute instead.
 
+## `HttpResponse` objects
 
+*class* `HttpRequest`
+
+In contrast to [`HttpRequest`](https://docs.djangoproject.com/en/4.1/ref/request-response/#django.http.HttpRequest) objects, which are created automatically by Django, [`HttpResponse`](https://docs.djangoproject.com/en/4.1/ref/request-response/#django.http.HttpResponse) objects are your responsibility. Each view you write is responsible for instantiating, populating, and returning an [`HttpResponse`](https://docs.djangoproject.com/en/4.1/ref/request-response/#django.http.HttpResponse).
+
+The [`HttpResponse`](https://docs.djangoproject.com/en/4.1/ref/request-response/#django.http.HttpResponse) class lives in the [`django.http`](https://docs.djangoproject.com/en/4.1/ref/request-response/#module-django.http) module.
+
+### Usage
+
+#### Passing strings
+
+Typical usage is to pass the contents of the page, as a string, bytestring, or [`memoryview`](https://docs.python.org/3/library/stdtypes.html#memoryview), to the [`HttpResponse`](https://docs.djangoproject.com/en/4.1/ref/request-response/#django.http.HttpResponse) constructor:
+
+```python
+from django.http import HttpResponse
+response = HttpResponse("Here's the text of the web page.")
+response = HttpResponse("Text only, please.", content_type="text/plain")
+response = HttpResponse(b'Bytestrings are also accepted.')
+response = HttpResponse(memoryview(b'Memoryview as well.'))
+```
+
+Add content incrementally
+
+```python
+response = HttpResponse()
+response.write("<p>Here's the text of the web page.</p>")
+response.write("<p>Here's another paragraph.</p>")
+```
+
+#### Setting header fields
+
+o set or remove a header field in your response, use [`HttpResponse.headers`](https://docs.djangoproject.com/en/4.1/ref/request-response/#django.http.HttpResponse.headers):
+
+```python
+response = HttpResponse()
+response.headers['Age'] = 120
+del response.headers['Age']
+```
+
+### Attributes
+
+##### HttpResponse.content
+
+A bytestring representing the content, encoded from a string if necessary
+
+##### HttpResponse.headers
+
+A  case insensitive, dict-like object that provides an interface to all HTTP headers on the response
+
+##### HttpResponse.status_code
+
+The [**HTTP status code**](https://datatracker.ietf.org/doc/html/rfc7231.html#section-6) for the response. Unless [`reason_phrase`](https://docs.djangoproject.com/en/4.1/ref/request-response/#django.http.HttpResponse.reason_phrase) is explicitly set, modifying the value of `status_code` outside the constructor will also modify the value of `reason_phrase`.
+
+## `JsonResponse` objects
+
+*class* `JsonResponse`**(***data***,** *encoder=DjangoJSONEncoder***,** *safe=True***,** *json_dumps_params=None***,** ***kwargs***)**
+
+An [`HttpResponse`](https://docs.djangoproject.com/en/4.1/ref/request-response/#django.http.HttpResponse) subclass that helps to create a JSON-encoded response. It inherits most behavior from its superclass with a couple differences:
+
+Its default `Content-Type` header is set to *application/json*. The first parameter, `data`, should be a `dict` instance. If the `safe` parameter is set to `False` (see below) it can be any JSON-serializable object.
+
+```python
+from django.http import JsonResponse
+response = JsonResponse({'foo': 'bar'})
+response.content
+```
 
