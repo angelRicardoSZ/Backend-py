@@ -16,6 +16,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from appInsta import views
+from posts import views as posts_views
+import posts
 
 
 urlpatterns = [
@@ -23,4 +25,5 @@ urlpatterns = [
     path('hello/',views.hello),
     # path('hi/',views.hi),
     path('hi/<str:name>/<int:age>/', views.say_hi),
+    path('posts', posts_views.list_posts),
 ]
