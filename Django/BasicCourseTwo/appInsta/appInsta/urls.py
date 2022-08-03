@@ -21,5 +21,6 @@ from appInsta import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('hello/',views.hello),
-    path('hi/',views.hi)
+    # path('hi/',views.hi),
+    path('hi/<str:name>/<int:age>/', views.say_hi),
 ]
