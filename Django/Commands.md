@@ -157,3 +157,19 @@ response = JsonResponse({'foo': 'bar'})
 response.content
 ```
 
+## Projects and applications
+
+The term **project** describes a Django web application
+
+The term **application** describes a Python package that provides some set of features. Applications include some combination of models, views, templates, template tags, static files, URLs, middleware, etc. They’re generally wired into projects with the [`INSTALLED_APPS`](https://docs.djangoproject.com/en/2.0/ref/settings/#std:setting-INSTALLED_APPS) setting and optionally with other mechanisms such as URLconfs, the [`MIDDLEWARE`](https://docs.djangoproject.com/en/2.0/ref/settings/#std:setting-MIDDLEWARE) setting, or template inheritance.
+
+## Application configuration
+
+Application configuration objects store metadata for an application. Some attributes can be configured in [`AppConfig`](https://docs.djangoproject.com/en/2.0/ref/applications/#django.apps.AppConfig) subclasses. Others are set by Django and read-only.
+
+
+
+
+
+
+
