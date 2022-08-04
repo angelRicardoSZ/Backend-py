@@ -167,7 +167,294 @@ The term **application** describes a Python package that provides some set of fe
 
 Application configuration objects store metadata for an application. Some attributes can be configured in [`AppConfig`](https://docs.djangoproject.com/en/2.0/ref/applications/#django.apps.AppConfig) subclasses. Others are set by Django and read-only.
 
+## Settings
 
+### `DATABASES`
+
+Default: `{}` (Empty dictionary)
+
+A dictionary containing the settings for all databases to be used with Django. It is a nested dictionary whose contents map a database alias to a dictionary containing the options for an individual database.
+
+The [`DATABASES`](https://docs.djangoproject.com/en/2.0/ref/settings/#std:setting-DATABASES) setting must configure a `default` database; any number of additional databases may also be specified.
+
+The simplest possible settings file is for a single-database setup using SQLite. This can be configured using the following:
+
+```json
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': 'mydatabase',
+    }
+}
+```
+
+PostgreSQL
+
+```json
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'mydatabase',
+        'USER': 'mydatabaseuser',
+        'PASSWORD': 'mypassword',
+        'HOST': '127.0.0.1',
+        'PORT': '5432',
+    }
+}
+```
+
+#### `ENGINE`
+
+Default: `''` (Empty string)
+
+The database backend to use. The built-in database backends are:
+
+```
+'django.db.backends.postgresql'
+'django.db.backends.mysql'
+'django.db.backends.sqlite3'
+'django.db.backends.oracle'
+```
+
+#### `HOST`
+
+Default: `''` (Empty string)
+
+Which host to use when connecting to the database. An empty string means localhost. Not used with SQLite.
+
+If this value starts with a forward slash (`'/'`) and you’re using MySQL, MySQL will connect via a Unix socket to the specified socket. For example:
+
+```
+"HOST": '/var/run/mysql'
+```
+
+If you’re using MySQL and this value *doesn’t* start with a forward slash, then this value is assumed to be the host.
+
+#### `NAME`
+
+Default: `''` (Empty string)
+
+The name of the database to use. For SQLite, it’s the full path to the database file. When specifying the path, always use forward slashes, even on Windows (e.g. `C:/homes/user/mysite/sqlite3.db`).
+
+#### `CONN_MAX_AGE`[¶](https://docs.djangoproject.com/en/2.0/ref/settings/#conn-max-age)
+
+Default: `0`
+
+The lifetime of a database connection, in seconds. Use `0` to close database connections at the end of each request — Django’s historical behavior — and `None` for unlimited persistent connections.
+
+#### `PASSWORD`[¶](https://docs.djangoproject.com/en/2.0/ref/settings/#password)
+
+Default: `''` (Empty string)
+
+The password to use when connecting to the database. Not used with SQLite.
+
+
+
+#### `PORT`[¶](https://docs.djangoproject.com/en/2.0/ref/settings/#port)
+
+Default: `''` (Empty string)
+
+The port to use when connecting to the database. An empty string means the default port. Not used with SQLite.
+
+
+
+#### `TIME_ZONE`[¶](https://docs.djangoproject.com/en/2.0/ref/settings/#time-zone)
+
+Default: `None`
+
+A string representing the time zone for datetimes stored in this database (assuming that it doesn’t support time zones) or `None`. This inner option of the [`DATABASES`](https://docs.djangoproject.com/en/2.0/ref/settings/#std:setting-DATABASES) setting accepts the same values as the general [`TIME_ZONE`](https://docs.djangoproject.com/en/2.0/ref/settings/#std:setting-TIME_ZONE) setting.
+
+This allows interacting with third-party databases that store datetimes in local time rather than UTC. To avoid issues around DST changes, you shouldn’t set this option for databases managed by Django.
+
+When [`USE_TZ`](https://docs.djangoproject.com/en/2.0/ref/settings/#std:setting-USE_TZ) is `True` and the database doesn’t support time zones (e.g. SQLite, MySQL, Oracle), Django reads and writes datetimes in local time according to this option if it is set and in UTC if it isn’t.
+
+When [`USE_TZ`](https://docs.djangoproject.com/en/2.0/ref/settings/#std:setting-USE_TZ) is `True` and the database supports time zones (e.g. PostgreSQL), it is an error to set this option.
+
+When [`USE_TZ`](https://docs.djangoproject.com/en/2.0/ref/settings/#std:setting-USE_TZ) is `False`, it is an error to set this option.
+
+### Connecting to the database
+
+Refer to the [settings documentation](https://docs.djangoproject.com/en/2.0/ref/settings/).
+
+Connection settings are used in this order:
+
+1. [`OPTIONS`](https://docs.djangoproject.com/en/2.0/ref/settings/#std:setting-OPTIONS).
+2. [`NAME`](https://docs.djangoproject.com/en/2.0/ref/settings/#std:setting-NAME), [`USER`](https://docs.djangoproject.com/en/2.0/ref/settings/#std:setting-USER), [`PASSWORD`](https://docs.djangoproject.com/en/2.0/ref/settings/#std:setting-PASSWORD), [`HOST`](https://docs.djangoproject.com/en/2.0/ref/settings/#std:setting-HOST), [`PORT`](https://docs.djangoproject.com/en/2.0/ref/settings/#std:setting-PORT)
+3. MySQL option files.
+
+ if you set the name of the database in [`OPTIONS`](https://docs.djangoproject.com/en/2.0/ref/settings/#std:setting-OPTIONS), this will take precedence over [`NAME`](https://docs.djangoproject.com/en/2.0/ref/settings/#std:setting-NAME), which would override anything in a [MySQL option file](https://dev.mysql.com/doc/refman/en/option-files.html).
+
+Here’s a sample configuration which uses a MySQL option file:
+
+```
+# settings.py
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'OPTIONS': {
+            'read_default_file': '/path/to/my.cnf',
+        },
+    }
+}
+
+
+# my.cnf
+[client]
+database = NAME
+user = USER
+password = PASSWORD
+default-character-set = utf8
+```
+
+# Model field reference
+
+## Field options
+
+### `null`
+
+If `True`, Django will store empty values as `NULL` in the database. Default is `False`.
+
+### `blank`
+
+If `True`, the field is allowed to be blank. Default is `False`.
+
+### `choices`
+
+An iterable (e.g., a list or tuple) consisting itself of iterables of exactly two items (e.g. `[(A, B), (A, B) ...]`) to use as choices for this field. If this is given, the default form widget will be a select box with these choices instead of the standard text field.
+
+The first element in each tuple is the actual value to be set on the model, and the second element is the human-readable name. For example:
+
+```python
+YEAR_IN_SCHOOL_CHOICES = (
+    ('FR', 'Freshman'),
+    ('SO', 'Sophomore'),
+    ('JR', 'Junior'),
+    ('SR', 'Senior'),
+)
+```
+
+Generally, it’s best to define choices inside a model class, and to define a suitably-named constant for each value
+
+```python
+from django.db import models
+
+class Student(models.Model):
+    FRESHMAN = 'FR'
+    SOPHOMORE = 'SO'
+    JUNIOR = 'JR'
+    SENIOR = 'SR'
+    YEAR_IN_SCHOOL_CHOICES = (
+        (FRESHMAN, 'Freshman'),
+        (SOPHOMORE, 'Sophomore'),
+        (JUNIOR, 'Junior'),
+        (SENIOR, 'Senior'),
+    )
+    year_in_school = models.CharField(
+        max_length=2,
+        choices=YEAR_IN_SCHOOL_CHOICES,
+        default=FRESHMAN,
+    )
+
+    def is_upperclass(self):
+        return self.year_in_school in (self.JUNIOR, self.SENIOR)
+```
+
+### `db_column`
+
+The name of the database column to use for this field. If this isn’t given, Django will use the field’s name.
+
+### `db_index`
+
+ If `True`, a database index will be created for this field.
+
+### `error_messages`
+
+The `error_messages` argument lets you override the default messages that the field will raise. Pass in a dictionary with keys matching the error messages you want to override.
+
+### `primary_key`
+
+If `True`, this field is the primary key for the model.`primary_key=True` implies [`null=False`](https://docs.djangoproject.com/en/2.0/ref/models/fields/#django.db.models.Field.null) and [`unique=True`](https://docs.djangoproject.com/en/2.0/ref/models/fields/#django.db.models.Field.unique). Only one primary key is allowed on an object.
+
+### `unique`
+
+If `True`, this field must be unique throughout the table.
+
+This is enforced at the database level and by model validation. If you try to save a model with a duplicate value in a [`unique`](https://docs.djangoproject.com/en/2.0/ref/models/fields/#django.db.models.Field.unique) field, a [`django.db.IntegrityError`](https://docs.djangoproject.com/en/2.0/ref/exceptions/#django.db.IntegrityError) will be raised by the model’s [`save()`](https://docs.djangoproject.com/en/2.0/ref/models/instances/#django.db.models.Model.save) method.
+
+This option is valid on all field types except [`ManyToManyField`](https://docs.djangoproject.com/en/2.0/ref/models/fields/#django.db.models.ManyToManyField) and [`OneToOneField`](https://docs.djangoproject.com/en/2.0/ref/models/fields/#django.db.models.OneToOneField).
+
+Note that when `unique` is `True`, you don’t need to specify [`db_index`](https://docs.djangoproject.com/en/2.0/ref/models/fields/#django.db.models.Field.db_index), because `unique` implies the creation of an index.
+
+## Field types
+
+### `AutoField`
+
+An [`IntegerField`](https://docs.djangoproject.com/en/2.0/ref/models/fields/#django.db.models.IntegerField) that automatically increments according to available IDs.
+
+### `BigAutoField`
+
+A 64-bit integer, much like an [`AutoField`](https://docs.djangoproject.com/en/2.0/ref/models/fields/#django.db.models.AutoField) except that it is guaranteed to fit numbers from `1` to `9223372036854775807`.
+
+### `BigIntegerField`
+
+A 64-bit integer, much like an [`IntegerField`](https://docs.djangoproject.com/en/2.0/ref/models/fields/#django.db.models.IntegerField) except that it is guaranteed to fit numbers from `-9223372036854775808` to `9223372036854775807`. The default form widget for this field is a [`TextInput`](https://docs.djangoproject.com/en/2.0/ref/forms/widgets/#django.forms.TextInput).
+
+### `BooleanField`
+
+A true/false field.
+
+The default form widget for this field is a [`CheckboxInput`](https://docs.djangoproject.com/en/2.0/ref/forms/widgets/#django.forms.CheckboxInput).
+
+If you need to accept [`null`](https://docs.djangoproject.com/en/2.0/ref/models/fields/#django.db.models.Field.null) values then use [`NullBooleanField`](https://docs.djangoproject.com/en/2.0/ref/models/fields/#django.db.models.NullBooleanField) instead.
+
+The default value of `BooleanField` is `None` when [`Field.default`](https://docs.djangoproject.com/en/2.0/ref/models/fields/#django.db.models.Field.default) isn’t defined.
+
+### `CharField`
+
+A string field, for small- to large-sized strings.
+
+For large amounts of text, use [`TextField`](https://docs.djangoproject.com/en/2.0/ref/models/fields/#django.db.models.TextField).
+
+The default form widget for this field is a [`TextInput`](https://docs.djangoproject.com/en/2.0/ref/forms/widgets/#django.forms.TextInput).
+
+[`CharField`](https://docs.djangoproject.com/en/2.0/ref/models/fields/#django.db.models.CharField) has one extra required argument:
+
+`CharField.``max_length`[¶](https://docs.djangoproject.com/en/2.0/ref/models/fields/#django.db.models.CharField.max_length)
+
+The maximum length (in characters) of the field. The max_length is enforced at the database level and in Django’s validation.
+
+### `DateField`
+
+A date, represented in Python by a `datetime.date` instance. Has a few extra, optional arguments:
+
+DateField.auto_now: Automatically set the field to now every time the object is saved. Useful for “last-modified” timestamps. Note that the current date is *always* used; it’s not just a default value that you can override.
+
+### `DateTimeField`
+
+A date and time, represented in Python by a `datetime.datetime` instance. Takes the same extra arguments as [`DateField`](https://docs.djangoproject.com/en/2.0/ref/models/fields/#django.db.models.DateField).
+
+### `EmailField`
+
+A [`CharField`](https://docs.djangoproject.com/en/2.0/ref/models/fields/#django.db.models.CharField) that checks that the value is a valid email address. It uses [`EmailValidator`](https://docs.djangoproject.com/en/2.0/ref/validators/#django.core.validators.EmailValidator) to validate the input.
+
+### `FileField`
+
+A file-upload field. Has two optional arguments:
+
+This attribute provides a way of setting the upload directory and file name, and can be set in two ways. In both cases, the value is passed to the [`Storage.save()`](https://docs.djangoproject.com/en/2.0/ref/files/storage/#django.core.files.storage.Storage.save) method.
+
+```python
+class MyModel(models.Model):
+    # file will be uploaded to MEDIA_ROOT/uploads
+    upload = models.FileField(upload_to='uploads/')
+    # or...
+    # file will be saved to MEDIA_ROOT/uploads/2015/01/30
+    upload = models.FileField(upload_to='uploads/%Y/%m/%d/')
+```
+
+`FileField.``storage`
+
+A storage object, which handles the storage and retrieval of your files
 
 
 
