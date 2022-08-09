@@ -72,3 +72,14 @@ def signup(request):
         return redirect('feed')
 
     return render(request, 'users/signup.html')
+
+
+def update_profile(request):
+    """_summary_
+
+    Args:
+        request (_type_): _description_
+    """
+    return render(request,'users/update_profile.html')
+
+

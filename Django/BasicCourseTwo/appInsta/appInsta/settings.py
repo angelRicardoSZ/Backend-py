@@ -51,6 +51,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'appInsta.middleware.ProfileCompletionMiddleware',
 ]
 
 ROOT_URLCONF = 'appInsta.urls'
