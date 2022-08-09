@@ -456,7 +456,124 @@ class MyModel(models.Model):
 
 A storage object, which handles the storage and retrieval of your files
 
+## Authentication in Web requests
 
+Django uses [sessions](https://docs.djangoproject.com/en/2.0/topics/http/sessions/) and middleware to hook the authentication system into [`request objects`](https://docs.djangoproject.com/en/2.0/ref/request-response/#django.http.HttpRequest). These provide a [`request.user`](https://docs.djangoproject.com/en/2.0/ref/request-response/#django.http.HttpRequest.user) attribute on every request which represents the current user. If the current user has not logged in, this attribute will be set to an instance of [`AnonymousUser`](https://docs.djangoproject.com/en/2.0/ref/contrib/auth/#django.contrib.auth.models.AnonymousUser), otherwise it will be an instance of [`User`](https://docs.djangoproject.com/en/2.0/ref/contrib/auth/#django.contrib.auth.models.User).
 
+## Authenticating users
 
+`authenticate`**(***request=None***,** ***credentials***)**[[source\]](https://docs.djangoproject.com/en/2.0/_modules/django/contrib/auth/#authenticate)
+
+Use [`authenticate()`](https://docs.djangoproject.com/en/2.0/topics/auth/default/#django.contrib.auth.authenticate) to verify a set of credentials. It takes credentials as keyword arguments, `username` and `password` for the default case, checks them against each [authentication backend](https://docs.djangoproject.com/en/2.0/topics/auth/customizing/#authentication-backends), and returns a [`User`](https://docs.djangoproject.com/en/2.0/ref/contrib/auth/#django.contrib.auth.models.User) object if the credentials are valid for a backend. If the credentials aren’t valid for any backend or if a backend raises [`PermissionDenied`](https://docs.djangoproject.com/en/2.0/ref/exceptions/#django.core.exceptions.PermissionDenied), it returns `None`. For example:
+
+```python
+from django.contrib.auth import authenticate
+user = authenticate(username='john', password='secret')
+if user is not None:
+    # A backend authenticated the credentials
+else:
+    # No backend authenticated the credentials
+```
+
+`request` is an optional [`HttpRequest`](https://docs.djangoproject.com/en/2.0/ref/request-response/#django.http.HttpRequest) which is passed on the `authenticate()` method of the authentication backends.
+
+## How to log a user in
+
+If you have an authenticated user you want to attach to the current session - this is done with a [`login()`](https://docs.djangoproject.com/en/2.0/topics/auth/default/#django.contrib.auth.login) function.
+
+`login`**(***request***,** *user***,** *backend=None***)**[[source\]](https://docs.djangoproject.com/en/2.0/_modules/django/contrib/auth/#login)
+
+To log a user in, from a view, use [`login()`](https://docs.djangoproject.com/en/2.0/topics/auth/default/#django.contrib.auth.login). It takes an [`HttpRequest`](https://docs.djangoproject.com/en/2.0/ref/request-response/#django.http.HttpRequest) object and a [`User`](https://docs.djangoproject.com/en/2.0/ref/contrib/auth/#django.contrib.auth.models.User) object. [`login()`](https://docs.djangoproject.com/en/2.0/topics/auth/default/#django.contrib.auth.login) saves the user’s ID in the session, using Django’s session framework.
+
+Note that any data set during the anonymous session is retained in the session after a user logs in.
+
+This example shows how you might use both [`authenticate()`](https://docs.djangoproject.com/en/2.0/topics/auth/default/#django.contrib.auth.authenticate) and [`login()`](https://docs.djangoproject.com/en/2.0/topics/auth/default/#django.contrib.auth.login):
+
+```python
+from django.contrib.auth import authenticate, login
+
+def my_view(request):
+    username = request.POST['username']
+    password = request.POST['password']
+    user = authenticate(request, username=username, password=password)
+    if user is not None:
+        login(request, user)
+        # Redirect to a success page.
+        ...
+    else:
+        # Return an 'invalid login' error message.
+        ...
+```
+
+## How to log a user out
+
+`logout`**(***request***)**[[source](https://docs.djangoproject.com/en/2.0/_modules/django/contrib/auth/#logout)
+
+To log out a user who has been logged in via [`django.contrib.auth.login()`](https://docs.djangoproject.com/en/2.0/topics/auth/default/#django.contrib.auth.login), use [`django.contrib.auth.logout()`](https://docs.djangoproject.com/en/2.0/topics/auth/default/#django.contrib.auth.logout) within your view. It takes an [`HttpRequest`](https://docs.djangoproject.com/en/2.0/ref/request-response/#django.http.HttpRequest) object and has no return value. Example:
+
+```python
+from django.contrib.auth import logout
+
+def logout_view(request):
+    logout(request)
+    # Redirect to a success page.
+```
+
+Note that [`logout()`](https://docs.djangoproject.com/en/2.0/topics/auth/default/#django.contrib.auth.logout) doesn’t throw any errors if the user wasn’t logged in.
+
+When you call [`logout()`](https://docs.djangoproject.com/en/2.0/topics/auth/default/#django.contrib.auth.logout), the session data for the current request is completely cleaned out. All existing data is removed. This is to prevent another person from using the same Web browser to log in and have access to the previous user’s session data. If you want to put anything into the session that will be available to the user immediately after logging out, do that *after* calling [`django.contrib.auth.logout()`](https://docs.djangoproject.com/en/2.0/topics/auth/default/#django.contrib.auth.logout).
+
+## Limiting access to logged-in users
+
+The simple, raw way to limit access to pages is to check [`request.user.is_authenticated`](https://docs.djangoproject.com/en/2.0/ref/contrib/auth/#django.contrib.auth.models.User.is_authenticated) and either redirect to a login page:
+
+```python
+from django.conf import settings
+from django.shortcuts import redirect
+
+def my_view(request):
+    if not request.user.is_authenticated:
+        return redirect('%s?next=%s' % (settings.LOGIN_URL, request.path))
+    # ...
+```
+
+…or display an error message:
+
+```python
+from django.shortcuts import render
+
+def my_view(request):
+    if not request.user.is_authenticated:
+        return render(request, 'myapp/login_error.html')
+    # ...
+```
+
+### The `login_required` decorator
+
+`login_required`**(***redirect_field_name='next'***,** *login_url=None***)**[[source\]](https://docs.djangoproject.com/en/2.0/_modules/django/contrib/auth/decorators/#login_required)[¶](https://docs.djangoproject.com/en/2.0/topics/auth/default/#django.contrib.auth.decorators.login_required)
+
+As a shortcut, you can use the convenient [`login_required()`](https://docs.djangoproject.com/en/2.0/topics/auth/default/#django.contrib.auth.decorators.login_required) decorator:
+
+```python
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def my_view(request):
+    ...
+```
+
+[`login_required()`](https://docs.djangoproject.com/en/2.0/topics/auth/default/#django.contrib.auth.decorators.login_required) does the following:
+
+- If the user isn’t logged in, redirect to [`settings.LOGIN_URL`](https://docs.djangoproject.com/en/2.0/ref/settings/#std:setting-LOGIN_URL), passing the current absolute path in the query string. Example: `/accounts/login/?next=/polls/3/`.
+- If the user is logged in, execute the view normally. The view code is free to assume the user is logged in.
+
+By default, the path that the user should be redirected to upon successful authentication is stored in a query string parameter called `"next"`. If you would prefer to use a different name for this parameter, [`login_required()`](https://docs.djangoproject.com/en/2.0/topics/auth/default/#django.contrib.auth.decorators.login_required) takes an optional `redirect_field_name` parameter:
+
+```python
+from django.contrib.auth.decorators import login_required
+
+@login_required(redirect_field_name='my_redirect_field')
+def my_view(request):
+    ...
+```
 
