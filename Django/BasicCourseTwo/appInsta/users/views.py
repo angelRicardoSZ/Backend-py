@@ -9,10 +9,10 @@ from django.shortcuts import render, redirect
 
 
 # Exceptions
-from django.db.utils import IntegrityError
+
 
 # Forms
-from users.forms import ProfileForm
+from users.forms import ProfileForm, SignupForm
 
 
 def login_view(request):
@@ -45,38 +45,28 @@ def logout_view(request):
 
 
 def signup(request):
+    """Sign up view.
+
+    Args:
+        request (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
     if request.method == 'POST':
-        email = request.POST['email']
-        username = request.POST['username']
-        passwd = request.POST['password']
-        passwd_confirmation = request.POST['password_confirmation']
+        form = SignupForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('login')
+    else:
+        form = SignupForm()
+    
+    return render(
+        request=request,
+        template_name='users/signup.html',
+        context={'form': form}
+    )
 
-        # PASSWORD VALIDATION
-        if passwd != passwd_confirmation:
-            return render(request, 'users/signup.html', {'error': 'Password confirmation does not match'})
-
-        # EMAIL VALIDATION
-        u = User.objects.filter(email=email)
-        if u:
-            error = f'There is another account using {email}'
-            return render(request, 'users/signup.html', {'error': error})    
-        # USERNAME VALIDATION
-        try:
-            user = User.objects.create_user(username=username, password=passwd)
-        except IntegrityError:
-            return render(request, 'users/signup.html', {'error': 'Username is already in user'})
-
-        user.first_name = request.POST['first_name']
-        user.last_name = request.POST['last_name']
-        user.email = request.POST['email']
-        user.save()
-
-        profile = Profile(user=user)
-        profile.save()
-
-        return redirect('feed')
-
-    return render(request, 'users/signup.html')
 
 @login_required
 def update_profile(request):
